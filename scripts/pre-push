@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# $1 -- Name of the remote to which the push is being done
+# $2 -- URL to which the push is being done
+#
+
+REMOTE="$1"
+URL="$2"
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+ALLOWED="main|master|develop"
+
+if [[ -e .noverify ]]; then
+	exit 0
+fi
+
+if [[ "$REMOTE" = "upstream" ]]; then
+	echo "HOOK: Pushing to 'upstream' remote!"
+	echo "HOOK: Use git push --no-verify to force this operation."
+	exit 1
+fi
+
+if ! echo $URL | grep -Eq "$USER"; then
+	echo "HOOK: Pushing to remote URL not containing '$USER'!"
+	echo "HOOK: Use git push --no-verify to force this operation."
+	exit 1
+fi
+
+if echo $BRANCH | grep -Eq '^(main|master|develop)$'; then
+	echo "HOOK: Pushing to disallowed branch (main, master, etc.)!"
+	echo "HOOK: Use git push --no-verify to force this operation."
+	exit 1
+fi
